@@ -1,0 +1,37 @@
+
+node {
+      stage("checkout") {
+        checkout scm
+      }
+      
+      
+      
+    def patternList=[]
+def userStoryList=[]
+def defectList=[]
+
+ 
+
+    stage("build"){
+        publishChecks(name:"Jenkins",status : "COMPLETED",summary:"Building...")
+    }
+      
+      stage("last-changes") {
+       def publisher = LastChanges.getLastChangesPublisher "LAST_SUCCESSFUL_BUILD", "SIDE", "LINE", true, true, "", "", "", "", ""
+             publisher.publishLastChanges()
+              def changes = publisher.getLastChanges()
+              println(changes.getEscapedDiff())
+              for (commit in changes.getCommits()) {
+                  println(commit)
+                  def commitInfo = commit.getCommitInfo()
+                  println(commitInfo.getCommitterEmail())
+                  println(commitInfo.getCommitterName())
+                  println(commitInfo.getCommitMessage())
+                   userStoryList.addAll((commitInfo.getCommitMessage() =~ /(?i)us[0-9]+/).findAll())
+  	               defectList.addAll((commitInfo.getCommitMessage() =~ /(?i)de[0-9]+/).findAll())
+                  //println(commit.getChanges())
+              }
+      }
+    print(userStoryList)
+    print (defectList)
+}
